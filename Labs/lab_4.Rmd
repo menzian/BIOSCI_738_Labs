@@ -1,0 +1,43 @@
+---
+title: "Lab 4"
+author: "Ana Menzies"
+date: "24/03/2022"
+output: word_document
+ 
+---
+
+```{r, echo=FALSE, message=FALSE}
+mammals <- readr::read_csv("https://raw.githubusercontent.com/STATS-UOA/databunker/master/data/mammals.csv")
+```
+
+```{r dev= "png", echo=FALSE, message=FALSE}
+library(ggplot2)
+  lm_2 <- lm(gestation_d~maximum_longevity_y*class, data = mammals)
+  
+# summary(lm_2)$coef
+  
+  ## calculate predicted values
+mammals$pred_vals <- predict(lm_2)
+
+ggplot(data = mammals, aes(y = gestation_d, x = maximum_longevity_y, color = class)) +
+  geom_point() + 
+  ylab("Gestation") +
+  xlab("Life Span") + theme_classic()  +
+  xlim(0,230)+
+  geom_line(aes(y = pred_vals)) +
+  theme_minimal() +
+  annotate(geom= "text", x= 23, y=750, label= "Portugese Viper", color = "cyan4", size = 3) + 
+  annotate(geom= "text", x= 77, y=710, label= "African Elephant", color = "red", size = 3) +
+    annotate(geom= "text", x= 77, y=610, label= "Asian Elephant", color = "red", size = 3) +
+    annotate(geom= "text", x= 210, y=410, label= "Bowhead", color = "red", size = 3) 
+```
+
+```{r dev="png", echo=FALSE, fig.cap = "The residual vs fitted plot shows that while most of the residuals do not have structure/pattern, there are several observations that have large residuals, indicating that there are points of high leverage in the data. The normal QQ plot also shows that there is deviation of a few residuals on on the tails from the 45 degree line. These indicate a heavy tailed distribution - with longer tails than normal distribution, where a few observations of very high or low values sit. This again suggests points of high leverage/outliers in the data. The scale-location plot highlights that the constant-variance assumption is not met, as the line is not roughly horizontal, but trends up with fitted values. This means that the average magnitude of the standardised residuals changes as a function of the fitted values. However, this effect seems to be created by a few points of high leverage. The residual vs leverage plot confirms that there are points of high leverage in this model aka outliers, and deleting them would change our model a lot. These residual plots suggests that we are breaking some of our assumptions of a linear model of equal variance and normality of residuals due to outliers in the data. These outliers should be investigated for further analysis"} 
+
+ library(gglm)
+  gglm::gglm(lm_2) 
+ 
+
+```
+
+

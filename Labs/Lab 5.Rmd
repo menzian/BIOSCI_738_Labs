@@ -1,0 +1,217 @@
+---
+title: "Lab 5"
+author: "Ana Menzies"
+date: "01/04/2022"
+output: pdf_document
+---
+
+```{r}
+library(tidyverse)
+url <- "https://raw.githubusercontent.com/STATS-UOA/databunker/master/data/crd_rats_data.csv"
+obj <- read_csv(url) %>%
+mutate(Surgery = as_factor(Surgery))
+obj
+```
+```{r}
+obj %>%
+group_by(Surgery) %>%
+summarise(Average = mean(logAUC))
+
+```
+
+```{r}
+get_averages <- function(object){
+means <- object %>%
+group_by(Surgery) %>%
+summarise(Average = mean(logAUC))
+means
+}
+
+get_averages(object = obj)
+
+```
+
+
+```{r}
+mod <- lm(logAUC ~ Surgery, data = obj)
+pm <- predictmeans::predictmeans(mod , modelterm = "Surgery", pairwise = TRUE, plot = FALSE)
+
+str(pm)
+
+
+```
+
+
+```{r}
+## to get each element from above eg
+pm$`Pairwise LSDs`
+```
+
+
+
+```{r}
+## some detains of whay my function does
+#' @param pm I can use this syntax to say what my expected arguments are
+my_pm_comparisons_function <- function(pm){
+## treatment names
+nms <- colnames(pm$`Pairwise LSDs`) #creating object called nm - that is colom names
+## comparison names
+c_names <- outer(nms, nms, function(x, y) paste(x, "-", y, sep = ""))
+## unique comparison names
+names <- c_names[upper.tri(c_names)]
+## extract bit of predictmeant outpur
+LSD <- pm$`Pairwise LSDs`
+diffs <- t(LSD)[lower.tri(t(LSD))] # code to extract top diagonal of LSD object - can use upper.tri to grab whats on top of matrix
+## create dtaframe with needed elements
+results <- data.frame(differences = diffs)
+## append comparison names as rownames
+rownames(results) <- names
+## return data frame
+return(results) #what you want function to spit back out at you - function will return last line 
+}
+
+my_pm_comparisons_function(pm = pm) # gives you column 1 C-P, C-S etc and column 2 differences
+# need to get LSD - form matrix - then calculate LSD=- SED? to give CI 
+# my trial
+
+library(dplyr)
+
+pm$`Predicted Means`
+
+pm$`Standard Error of Means`
+
+pm$`Pairwise p-value` 
+
+pm$mean_table
+
+pm$`Standard Error of Differences`   #SED
+
+pm$mean_table$`UL of 95% CI` #upper CI
+
+pm$mean_table$`LL of 95% CI` #lower CI
+
+
+pm$`Pairwise p-value`
+
+
+anas_pm_comparisons_function <- function(pm){
+## treatment names
+nms <- colnames(pm$`Pairwise LSDs`) #creating object called nm - that is colom names
+## comparison names
+c_names <- outer(nms, nms, function(x, y) paste(x, "-", y, sep = ""))
+## unique comparison names
+names <- c_names[upper.tri(c_names)]
+## extract bit of predictmeant outpur
+LSD <- pm$`Pairwise LSDs`
+diffs <- t(LSD)[upper.tri(t(LSD))] # code to extract top diagonal of LSD object - can use upper.tri to grab whats on top of matrix
+## create dtaframe with needed elements
+results <- data.frame(differences = diffs) # add another comma here, to create a larger  data frame ## HERE WHERE ADD OTHER THINGS TO MAKE MORE COLUMNS
+## append comparison names as rownames
+rownames(results) <- names
+## return data frame
+return(results) #what you want function to spit back out at you - function will return last line 
+#say you want antoerh column in results section - eg created disfts then resutls - toldto return results 
+}
+
+anas_pm_comparisons_function(pm = pm) # change this to uppe tri - then Ci are differences plus mius LSD values - then t and p value 
+
+#####################3
+
+ana2_pm_comparisons_function <- function(pm){
+## treatment names
+nms <- colnames(pm$`Pairwise LSDs`) #creating object called nm - that is colom names
+## comparison names
+c_names <- outer(nms, nms, function(x, y) paste(x, "-", y, sep = ""))
+## unique comparison names
+names <- c_names[upper.tri(c_names)]
+## extract bit of predictmeant outpur
+LSD <- pm$`Pairwise LSDs`
+diffs <- t(LSD)[lower.tri(t(LSD))] # code to extract top diagonal of LSD object - can use upper.tri to grab whats on top of matrix
+
+## SED
+nms <- colnames(pm$`Pairwise LSDs`) #creating object called nm - that is colom names
+## comparison names
+c_names <- outer(nms, nms, function(x, y) paste(x, "-", y, sep = ""))
+## unique comparison names
+names <- c_names[upper.tri(c_names)]
+## extract bit of predictmeant outpur
+SED <- pm$`Standard Error of Differences`
+
+
+## LSD
+nms <- colnames(pm$`Pairwise LSDs`) #creating object called nm - that is colom names
+## comparison names
+c_names <- outer(nms, nms, function(x, y) paste(x, "-", y, sep = ""))
+## unique comparison names
+names <- c_names[upper.tri(c_names)]
+## extract bit of predictmeant outpur
+LSD <- pm$`Pairwise LSDs`
+LSD_from_matrix <- t(LSD)[upper.tri(t(LSD))]
+
+#Lower CI 
+nms <- colnames(pm$`Pairwise LSDs`) #creating object called nm - that is colom names
+## comparison names
+c_names <- outer(nms, nms, function(x, y) paste(x, "-", y, sep = ""))
+## unique comparison names
+names <- c_names[upper.tri(c_names)]
+## extract bit of predictmeant outpur
+LSD <- pm$`Pairwise LSDs`
+lower_CI <- diffs-LSD_from_matrix
+
+
+#Upper CI 
+nms <- colnames(pm$`Pairwise LSDs`) #creating object called nm - that is colom names
+## comparison names
+c_names <- outer(nms, nms, function(x, y) paste(x, "-", y, sep = ""))
+## unique comparison names
+names <- c_names[upper.tri(c_names)]
+## extract bit of predictmeant outpur
+LSD <- pm$`Pairwise LSDs`
+upper_CI <- diffs+LSD_from_matrix
+
+#tstat
+nms <- colnames(pm$`Pairwise LSDs`) #creating object called nm - that is colom names
+## comparison names
+c_names <- outer(nms, nms, function(x, y) paste(x, "-", y, sep = ""))
+## unique comparison names
+names <- c_names[upper.tri(c_names)]
+## extract bit of predictmeant outpur
+t <- pm$`Pairwise p-value`
+t_val <- t(t)[lower.tri(t(LSD))]
+
+#pstat
+nms <- colnames(pm$`Pairwise LSDs`) #creating object called nm - that is colom names
+## comparison names
+c_names <- outer(nms, nms, function(x, y) paste(x, "-", y, sep = ""))
+## unique comparison names
+names <- c_names[upper.tri(c_names)]
+## extract bit of predictmeant outpur
+t <- pm$`Pairwise p-value`
+p_val <- t(t)[upper.tri(t(LSD))]
+
+
+## create dtaframe with needed elements
+results <- data.frame(Differences = diffs, SED =SED, LSDs=LSD_from_matrix, Lower95CI = lower_CI, Upper95CI = upper_CI, tstatistic = t_val, pvalue=p_val)
+## append comparison names as rownames
+rownames(results) <- names
+## return data frame
+return(results) #what you want function to spit back out at you - function will return last line 
+}
+
+ana2_pm_comparisons_function(pm = pm)
+```
+
+
+
+
+```{r}
+
+anas_awesome_function(pm)
+```
+
+
+
+
+
+
+
