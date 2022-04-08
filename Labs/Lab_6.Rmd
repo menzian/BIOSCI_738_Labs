@@ -25,15 +25,103 @@ control (0) 100, 200, 300
 Produce a plot of your collected data, which you think best illustrates your question and the data you collected (along with any trends you think may exist). Your plot should be adequately labelled and include an informative caption. Your plot and caption should be stand-alone (i.e., the reader
 should be able to understand what you are showing from simply the plot and caption.) 
 
-```{r, fig.cap= "Figure 1: "}
+```{r, echo = FALSE, fig.cap= "Figure 1: Box plot showing effect of quantity of copper units added to feed and feed type on growth rate of chicks. Experiment created and run on vested Rshiny application (https://stats-uoa.shinyapps.io/vested/), virtual experiment 'Miracle grow for chooks'"}
 # Call packages needed for analysis
 library(readr)
 library(ggplot2)
 library(tidyverse)
 
-# Read in data 
-readr:read_csv()
-data <- read.csv("chick_data-2022-04-07.csv")
+# Read in data from github
+data <- read.csv("https://raw.githubusercontent.com/menzian/BIOSCI_738_Labs/main/Labs/chick_data-2022-04-07.csv")
+
+#grouping relevant data
+data_1 <- data %>% 
+  dplyr::select(c("copper", "growth", "diet"))%>%
+  group_by(diet)
+
+#Changing variables to factors for analysis
+data_1$copper <- as.factor(data_1$copper)
+
+data_1$diet <- as.factor(data_1$diet)
+
+#Creating box plot showing data 
+ggplot(data_1, aes(x=copper, y=growth, fill=diet)) +
+  geom_boxplot() +
+  ylab("Growth rate") + 
+xlab("Copper units") +
+  theme_minimal()
+
+
+#http://www.sthda.com/english/wiki/ggplot2-box-plot-quick-start-guide-r-software-and-data-visualization
+
+
+```
+
+Analyse your data, using any of the techniques we've covered in the course so far (or anyway else you deem appropriate). Draw inference. Did you deem it necessary to include random effects in your model? What did you find? Were there any limitations in your design? What might you be able to conclude? You should report all relevant details from your analysis. In addition, in a short and concise Appendix, you should include all relevant code (printed in code chunks) so that your analysis can be reproduced (assuming a data structure as downloaded from the application).
+
+
+
+```{r}
+lm_1 <- lm(growth ~ copper*diet, data = data)
+
+summary(lm_1)$coef
+
+anova(lm_1)
+
+gglm::gglm(lm_1)
+
+##multiple comparisons?
+
+library(predictmeans)
+
+data_1_pm <- data_1 %>%
+  mutate(copper = as.factor(copper))
+
+lm_2 <- lm(growth ~ copper*diet, data = data_1_pm)
+
+pm <- predictmeans::predictmeans(lm_2 , modelterm = "copper", 
+                                     pairwise = TRUE, plot = FALSE)
+str(pm)
+pm$mean_table
+print(pm$`Pairwise p-value`)
+
+#random effect of block ID (like vegetation block id) 
+
+library(lme4)
+
+lmer4_mod <- lme4::lmer(growth ~copper*diet + (1|brooder), data = data)
+summary(lmer4_mod)
+
+summary(aov(growth ~ copper*diet + Error(brooder), data = data))
+
+```
+
+as it is a balanced design, ordering doesnt matter
+
+because I have blocked
+
+Random effect of block id
+
+# Knit your report to PDF and upload. Your write-up should be no more than a page of A4 in total (including the plot and code chunks).
+
+
+What I will be looking for?
+Legitimate experimental strategy: has an insightful and justified design been implemented and outlined?
+Publication worth plot: does the plot adequately illustrate the data collected using publication-worthy aesthetics?
+Warranted analysis and accurate inference: were appropriate statistical techniques used to analyse the data and were correct inferences made?
+Structured and reproducible code appendix: would someone with no prior knowledge of this lab be able to reproduce your analysis?
+
+
+## Appendix of code
+
+
+
+
+
+
+#offcuts
+
+```{r}
 
 ggplot(data_1, aes(x=copper, y=growth, colour=diet)) +
   geom_point() +
@@ -81,69 +169,4 @@ ggplot(data,aes(x = copper, y = growth, group=copper, colour = diet)) + ## data 
 ########
 #Good one?
 
-data_1 <- data %>% 
-  dplyr::select(c("copper", "growth", "diet"))%>%
-  group_by(diet)
-
-str(data_1)
-
-data_1$copper <- as.factor(data_1$copper)
-
-data_1$diet <- as.factor(data_1$diet)
-
-
-ggplot(data_1, aes(x=copper, y=growth, fill=diet)) +
-  geom_boxplot() +
-  ylab("Growth rate") + 
-xlab("Copper units added") +
-  theme_minimal()
-
-
-#http://www.sthda.com/english/wiki/ggplot2-box-plot-quick-start-guide-r-software-and-data-visualization
-
-
 ```
-
-Analyse your data, using any of the techniques we've covered in the course so far (or anyway else you deem appropriate). Draw inference. Did you deem it necessary to include random effects in your model? What did you find? Were there any limitations in your design? What might you be able to conclude? You should report all relevant details from your analysis. In addition, in a short and concise Appendix, you should include all relevant code (printed in code chunks) so that your analysis can be reproduced (assuming a data structure as downloaded from the application).
-
-
-
-```{r}
-lm_1 <- lm(growth ~ copper*diet, data = data)
-
-summary(lm_1)$coef
-
-anova(lm_1)
-
-gglm::gglm(lm_1)
-
-##multiple comparisons?
-
-library(predictmeans)
-
-data_1_pm <- data_1 %>%
-  mutate(copper = as.factor(copper))
-
-lm_2 <- lm(growth ~ copper*diet, data = data_1_pm)
-
-pm <- predictmeans::predictmeans(lm_2 , modelterm = "copper", 
-                                     pairwise = TRUE, plot = FALSE)
-str(pm)
-pm$mean_table
-print(pm$`Pairwise p-value`)
-```
-
-as it is a balanced design, ordering doesnt matter
-
-Knit your report to PDF and upload. Your write-up should be no more than a page of A4 in total (including the plot and code chunks).
-
-
-What I will be looking for?
-Legitimate experimental strategy: has an insightful and justified design been implemented and outlined?
-Publication worth plot: does the plot adequately illustrate the data collected using publication-worthy aesthetics?
-Warranted analysis and accurate inference: were appropriate statistical techniques used to analyse the data and were correct inferences made?
-Structured and reproducible code appendix: would someone with no prior knowledge of this lab be able to reproduce your analysis?
-
-
-## Appendix of code
-
