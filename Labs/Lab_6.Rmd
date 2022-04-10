@@ -1,46 +1,21 @@
 ---
-title: "Lab 6"
-author: "Ana Menzies"
-date: "08/04/2022"
 output: pdf_document
 ---
 
-#Briefly, write up your strategy in designing your experiment. What were you wanting to ascertain? What sources of variation did you have to consider? How did you control for these sources of variation (e.g., via randomisation, replication, or blocking)? What given the study set-up, could you not control for?
+###### Briefly, write up your strategy in designing your experiment.
+- My aim was to design an experiment that could determine the optimum amount of copper units to add to two types of feed (wheat or maize) to optimise growth rate of pullets. 
+- Apart from the effects of the treatments (copper unit level and type of feed given), other sources of variation I had to consider were 1) difference in conditions across the 4 different brooders, 2) position of the chicks in each brooder as there are 4 tiers in every brooder 
+- To control for these sources of variation I: Used blocking by replicating the same experimental design in each brooder. In each brooder, I fed 1 nest a wheat diet and 1 nest maize on each tier, alternating left and right. I did not randomize this allocation, as I wanted to be sure each tier had both wheat and maize treatments. I chose 4x treatments of copper unit application: 0 units, 100 units, 200 units and 300 units. We were told that it was known that 150 units would increase pullet growth rate, so I wanted to compare doses higher and lower than 150 to look at growth rate trend, and compare this to a control (0 units). Each tier was assigned one treatment. To increase sample size I replicated this design in each of the 4 brooders. However, to account for difference in tiers, in each brooder a given copper treatment was completed on a different tier.
+- Sources of variation I couldn't control for were genetic relatedness of pullets, original size and weight of pullets or effect of individual nest conditions (for example, condition of nest, competition for feed between the birds sharing the same nest and therefore which pullet ate more food).
 
-# notes from charlote lab
-talk through how design experiment
-bullet points are fine
-if youve fitted model - indicate why not approprit and how wold approve
-not looking for walls of text
-but need to include code
-can assume charlote can read in own data
-
-My aim was to design an experiment that could determine the optimum amount of copper units to add to two types of feed (wheat or maize) to optimise growth rate of pullets. 
-
-Apart from the effects of treatments (copper unit level and type of feed given), other sources of variation I had to consider were 1) difference in conditions across the 4 different brooders, 2) position of the chicks in each brooder as there are 4 tiers in every brooder 3) variation of every individual nest (each of which has 2 chicks).
-
-To control for these sources of variation I: 
-
-Used blocking by separating the 4 different brooders, and replicating the same experimental design in each brooder. In each brooder, I fed 1 nests a wheat diet and 1 nests maize on each tier, alternating left and right. I did not randomise this, as there was a small sample size, this often created quite skewed data (i.e much more maize than wheat and vice versa). This accounted fo variation of feed across different tiers.
-
-I chose 4x treatments of copper unit application: a control (0 units), 100 units, 200 units and 300 units. This was to cover the range of 150 units, and have treatments of more or less units to see growth rate either side of this.
-
-To account for difference in tiers and brooders I repeated these same copper treatments across all 4 brooders, but each time I comleted the treatment on  a different tier. 
-
-Sources of variation I couldn't control for were.....
-
-#Produce a plot of your collected data, which you think best illustrates your question and the data you collected (along with any trends you think may exist). Your plot should be adequately labelled and include an informative caption. Your plot and caption should be stand-alone (i.e., the reader should be able to understand what you are showing from simply the plot and caption.) 
-
-```{r, echo = FALSE, fig.cap= "Figure 1: Box plots showing effect of quantity of copper units added to two different feed types (maize and wheat) on growth rate of pullets. Experiment created and run on vested Rshiny application (https://stats-uoa.shinyapps.io/vested/), virtual experiment 'Miracle grow for chooks'"}
-
-## I also had to consider effects of treatmetns: copper unit level and type of feed given 
-#I also had to consider effects of treatmetns: copper unit level and type of feed given 
-
-
+```{r, warning=FALSE, message=FALSE, include=FALSE}
 # Call packages needed for analysis
 library(readr)
 library(ggplot2)
 library(tidyverse)
+```
+
+```{r, echo = FALSE, fig.height=3, fig.width=4, fig.cap= "Box plots showing effect of quantity of copper units added to two different feed types (maize and wheat) on growth rate of pullets. Experiment created and run on vested Rshiny application (https://stats-uoa.shinyapps.io/vested/), virtual experiment 'Miracle grow for chooks'"}
 
 # Read in data from github
 data <- read.csv("https://raw.githubusercontent.com/menzian/BIOSCI_738_Labs/main/Labs/chick_data-2022-04-07.csv")
@@ -52,7 +27,6 @@ data_1 <- data %>%
 
 #Changing variables to factors for analysis
 data_1$copper <- as.factor(data_1$copper)
-
 data_1$diet <- as.factor(data_1$diet)
 
 #Creating box plot showing data 
@@ -60,148 +34,62 @@ ggplot(data_1, aes(x=copper, y=growth, fill=diet)) +
   geom_boxplot() +
   ylab("Growth rate") + 
 xlab("Copper units") +
-  theme_minimal()
-
-
-#http://www.sthda.com/english/wiki/ggplot2-box-plot-quick-start-guide-r-software-and-data-visualization
-
+  #change elements of graph to improve visualization/clarity
+  theme(panel.border = element_blank(),
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(),
+  axis.line = element_line(colour = "black"), panel.background = element_blank())
 
 ```
 
-Analyse your data, using any of the techniques we've covered in the course so far (or anyway else you deem appropriate). Draw inference. Did you deem it necessary to include random effects in your model? What did you find? Were there any limitations in your design? What might you be able to conclude? You should report all relevant details from your analysis. In addition, in a short and concise Appendix, you should include all relevant code (printed in code chunks) so that your analysis can be reproduced (assuming a data structure as downloaded from the application).
+###### Analyse your data
+- It seemed necessary to include random effects of brooder into the model, as conditions may have varied between the four brooders, so I initially fitted a linear mixed-effect model (with an interaction between copper and diet) using brooder as a random effect. However coefficients of this model showed that the intercept was almost the same for every brooder, meaning there was little effect of brooder on the model and therefore I removed this term.
+- I then fitted a basic linear model with an interaction between copper and diet. Diagnostic plots showed that assumptions were met. 
+- There was strong evidence that for both diets, all copper treatments increased growth rate in comparison to controls (p<0.001). However, this relationship differed between diets: for the maize diet, the 100 unit copper treatment increased growth the most, followed by the  200 and 300 copper unit treatments. However, for the wheat diet, overall increase in growth rate was less, and growth rate was highest for the 200 unit treatment.
+- Anova showed that there was strong evidence against the null hypothesis that growth rate was not affected by diet, copper units or the interaction between diet and copper (p = <0.01). To investigate this further I used the predict means package to carry out multiple comparisons. 
+- Using the pm output, I found strong evidence of differences within all maize copper treatments and within all wheat copper treatments (p=<0.001). The predict means plot shows that there is an interaction between diet and copper.
+- The highest growth rates were from Maize:100, wheat:200, wheat:300 treatments. However, there was no evidence for differences between these treatments in the predict means output (p>0.2), and therefor I would recommend the farmer applying a Mazie:100 treatment to reduce cost of copper for the same increase in growth rate (assuming wheat and maize are the same price). 
+- Future improvements to this model could include fitting the model with nest as a random effect. 
 
-I analysed my data using linear models and anova. It seemed necessary to include random effects of brooder into the model, as conditions may have varied between the four brooders, so I added this.
-
-I used pairwise comparisons? 
-
-I found that there was strong evidence against the null hypothesis that that copper unit treatment did not effected growth rate (p =).
-
-There was also strong evidence agaisnt the null hypothesis that diet type (wheat or maize) does not effect grouth (p = ).
-
-Lastly, there was strong evidence agaisnt the null hypothesis that there was not an interaction between copper and diet (p= )
-
-From my analysis I can conclude that wihout copper, wheat results in increased growth rate, however when combined with copper wheat resulted in on average higher greowth rate. 
-
-Copper increased growth rate until a certain point 
-```{r}
-#creating linear model with interaction between copper and diet
-lm_1 <- lm(growth ~ copper*diet, data = data)
-
-# extracting coefficents from lm 
-summary(lm_1)$coef
-
-#analysis of variance
-anova(lm_1)
-
-# checking model assumptions
-gglm::gglm(lm_1)
-
-##multiple comparisons?
-
+```{r, eval=FALSE, warning=FALSE, message=FALSE}
+library(readr) # Call packages needed for analysis
+library(ggplot2)
+library(tidyverse)
 library(predictmeans)
-
-#making copper a factor so that I can use predict means
-data_1_pm <- data_1 %>%
-  mutate(copper = as.factor(copper))
-
-lm_2 <- lm(growth ~ copper*diet, data = data_1_pm)
-
-pm <- predictmeans::predictmeans(lm_2 , modelterm = "copper", 
-                                     pairwise = TRUE, plot = FALSE)
-str(pm)
-pm$mean_table
-print(pm$`Pairwise p-value`)
-
-#random effect of block ID (like vegetation block id) 
-
 library(lme4)
+# Read in data from github
+data<-read.csv("https://raw.githubusercontent.com/menzian/BIOSCI_738_Labs/main/Labs/chick_data-2022-04-07.csv")
+data_1 <- data %>% 
+  dplyr::select(c("copper", "growth", "diet"))%>%
+  group_by(diet) #grouping relevant data
+data_1$copper <- as.factor(data_1$copper) #Changing variables to factors for analysis
+data_1$diet <- as.factor(data_1$diet)
 
-#
-lmer4_mod <- lme4::lmer(growth ~copper*diet + (1|brooder), data = data)
-summary(lmer4_mod)
-
-summary(aov(growth ~ copper*diet + Error(brooder), data = data))
-
+##Creating box plot showing data 
+ggplot(data_1, aes(x=copper, y=growth, fill=diet)) +
+  geom_boxplot() + ylab("Growth rate") + xlab("Copper units") +
+  theme(panel.border = element_blank(), panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+  axis.line = element_line(colour = "black"), panel.background = element_blank())
+##Analysis
+data_pm <- data %>% 
+  mutate(copper = as.factor(copper)) %>%
+  mutate(diet = as.factor(diet)) #making copper a factor so that I can use predict means later
+##Creating linear model with interaction between copper and diet, and adding random effect of block ID. 
+lmerTest_mod <- lmerTest::lmer(growth ~copper*diet + (1|brooder), data = data_pm)
+coefficients(lmerTest_mod) #extracting coefficients from lm
+##Creating linear model with interaction between copper and diet
+lm_1 <- lm(growth ~ copper*diet, data = data_pm)
+gglm::gglm(lm_1) # checking model assumptions
+summary(lm_1)$coef # extracting coefficents from lm 
+anova(lm_1) #anova 
+##Multiple comparisons using predict means
+pm <- predictmeans(lm_1, modelterm = "copper:diet", pairwise = TRUE, plot = TRUE)
+plot <- pm$predictmeansPlot
+plot
+##Using Charlotte's funtion to extract coefficients of interest
+url <- "https://gist.github.com/cmjt/72f3941533a6bdad0701928cc2924b90"
+devtools::source_gist(url, quiet = TRUE)
+comparisons(pm)
 ```
 
-as it is a balanced design, ordering doesnt matter
-
-because I have blocked
-
-Random effect of block id
-
-# Knit your report to PDF and upload. Your write-up should be no more than a page of A4 in total (including the plot and code chunks).
-
-
-What I will be looking for?
-Legitimate experimental strategy: has an insightful and justified design been implemented and outlined?
-Publication worth plot: does the plot adequately illustrate the data collected using publication-worthy aesthetics?
-Warranted analysis and accurate inference: were appropriate statistical techniques used to analyse the data and were correct inferences made?
-Structured and reproducible code appendix: would someone with no prior knowledge of this lab be able to reproduce your analysis?
-
-
-## Appendix of code
-
-```{r}
-
-
-
-
-
-```
-
-
-
-
-
-#offcuts
-
-```{r}
-
-ggplot(data_1, aes(x=copper, y=growth, colour=diet)) +
-  geom_point() +
-  geom_smooth(method = 'lm', se=FALSE)
-
-
-#data_m <- data %>% 
-#  filter(diet == "Maize") %>%
- # group_by(copper)
-  
-data_m <- data %>% 
-  filter(diet == "Maize") %>%
-  dplyr::select(c("copper", "growth"))%>%
-  group_by(copper)
-  
-
-data_w <- data %>% 
-  filter(diet == "Wheat") %>%
-  dplyr::select(c("copper", "growth"))%>%
-  group_by(copper)
-
-ggplot(data_m,aes(x = copper, y = growth, group=copper)) + ## data & aesthetics
-    geom_boxplot()  + ## geom
-  ggtitle("Maize") +
-  ylab("Growth") +
-  xlab("Copper") 
- ## theme
-
-ggplot(data_w,aes(x = copper, y = growth, group=copper)) + ## data & aesthetics
-    geom_boxplot()  + ## geom
-    scale_fill_viridis(discrete = TRUE, alpha=0.6) +
-    geom_jitter(color="black", size=0.4, alpha=0.9) +
-  ggtitle("Wheat") +
-  ylab("Growth") +
-  xlab("Copper") 
- ## theme
-
-ggplot(data,aes(x = copper, y = growth, group=copper, colour = diet)) + ## data & aesthetics
-    geom_boxplot()  + ## geom
-  ggtitle("Maize") +
-  ylab("Growth") +
-  xlab("Copper") 
- ## theme
-
-########
-#Good one?
-
-```
